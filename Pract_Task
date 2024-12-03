@@ -1,0 +1,36 @@
+class RetryExecutor
+  def initialize(retries: 3, delay: 1)
+    @retries = retries
+    @delay = delay
+  end
+  def execute
+    attempts = 0
+
+    begin
+      yield # Виконується переданий блок
+    rescue StandardError => e
+      attempts += 1
+      if attempts <= @retries
+        puts "Помилка: #{e.message}. Повтор через #{@delay} секунд. Спроба #{attempts} з #{@retries}."
+        sleep @delay # Затримка перед повтором
+        retry # Повторна спроба
+      else
+        puts "Максимальна кількість спроб вичерпана. Завершення."
+        raise e # Повторно кидаємо помилку
+      end
+    end
+  end
+end
+
+# Використання класу
+executor = RetryExecutor.new(retries: 3, delay: 2)
+
+begin
+  executor.execute do
+    # Симуляція помилки
+    puts "Виконання блоку..."
+    raise "Щось пішло не так!"
+  end
+rescue StandardError => e
+  puts "Остаточна помилка: #{e.message}"
+end
